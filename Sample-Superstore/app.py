@@ -2,205 +2,117 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # ===============================
 # KONFIGURASI HALAMAN
 # ===============================
 st.set_page_config(
-    page_title="Aplikasi Clustering",
-    page_icon="📊",
+    page_title="Regresi Sales Superstore",
+    page_icon="📈",
     layout="wide"
 )
 
-st.markdown("""
-<style>
-.reportview-container {
-    background: #0E1117;
-}
-.sidebar .sidebar-content {
-    background: #111418;
-}
-</style>
-""", unsafe_allow_html=True)
+st.title("📈 Regresi Linear – Dataset Sample Superstore")
+st.caption("Prediksi Sales menggunakan Quantity, Discount, dan Profit")
 
 # ===============================
-# SIDEBAR
+# LOAD DATA
 # ===============================
-with st.sidebar:
-    st.markdown("## 📊 Clustering App")
-    st.caption("Data Mining dengan Streamlit")
-    st.markdown("---")
-
-    menu = st.radio(
-        "📌 Menu Utama",
-        ["Upload Data", "Preprocessing", "Clustering", "Visualisasi"]
+@st.cache_data
+def load_data():
+    return pd.read_csv(
+        "Sample - Superstore.csv",
+        encoding="latin1"
     )
 
-    st.markdown("---")
-
-    if "data" in st.session_state:
-        st.success("✅ Dataset dimuat")
-        st.caption(f"Jumlah data: {st.session_state['data'].shape[0]} baris")
-    else:
-        st.warning("⚠️ Dataset belum diupload")
-
-    st.markdown("---")
-    st.caption("👨‍💻 Dibuat dengan Streamlit")
+df = load_data()
+df.columns = df.columns.str.strip()
 
 # ===============================
-# UPLOAD DATA
+# PREVIEW DATA
 # ===============================
-if menu == "Upload Data":
-    st.title("📂 Upload Dataset CSV")
-
-    file = st.file_uploader("Upload file CSV", type=["csv"])
-
-    if file is not None:
-        try:
-            df = pd.read_csv(file, encoding="utf-8")
-        except UnicodeDecodeError:
-            df = pd.read_csv(file, encoding="latin1")
-
-        st.session_state["data"] = df
-        st.success("✅ Dataset berhasil diupload")
-        st.dataframe(df.head(), use_container_width=True)
+st.subheader("📊 Preview Dataset")
+st.dataframe(df.head())
 
 # ===============================
-# PREPROCESSING
+# SELEKSI DATA REGRESI
 # ===============================
-elif menu == "Preprocessing":
-    st.title("⚙️ Preprocessing Data")
+df_reg = df[['Quantity', 'Discount', 'Profit', 'Sales']].dropna()
 
-    if "data" not in st.session_state:
-        st.warning("Silakan upload dataset terlebih dahulu")
-    else:
-        df = st.session_state["data"]
-        st.subheader("📄 Data Awal")
-        st.dataframe(df.head(), use_container_width=True)
-
-        numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-
-        if not numeric_cols:
-            st.error("❌ Dataset tidak memiliki kolom numerik")
-        else:
-            selected_cols = st.multiselect(
-                "Pilih kolom numerik yang digunakan untuk clustering:",
-                numeric_cols,
-                default=numeric_cols
-            )
-
-            if st.button("🔄 Standarisasi Data"):
-                scaler = StandardScaler()
-                scaled_data = scaler.fit_transform(df[selected_cols])
-
-                st.session_state["scaled_data"] = scaled_data
-                st.session_state["selected_cols"] = selected_cols
-
-                st.success("✅ Data berhasil distandarisasi")
+X = df_reg[['Quantity', 'Discount', 'Profit']]
+y = df_reg['Sales']
 
 # ===============================
-# CLUSTERING
+# SPLIT DATA
 # ===============================
-elif menu == "Clustering":
-    st.title("🧠 Proses Clustering")
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-    if "scaled_data" not in st.session_state:
-        st.warning("Lakukan preprocessing terlebih dahulu")
+# ===============================
+# TRAIN MODEL
+# ===============================
+model = LinearRegression()
+model.fit(X_train, y_train)
 
-    else:
-        scaled_data = st.session_state["scaled_data"]
+# ===============================
+# PREDIKSI
+# ===============================
+y_pred = model.predict(X_test)
 
-        st.subheader("📈 Grafik Elbow Method (Menentukan K Optimal)")
+# ===============================
+# EVALUASI MODEL
+# ===============================
+st.subheader("📉 Evaluasi Model")
 
-        # Hitung SSE untuk berbagai K
-        sse = []
-        K_range = range(2, 11)
+col1, col2, col3, col4 = st.columns(4)
 
-        for k in K_range:
-            model = KMeans(n_clusters=k, random_state=42, n_init=10)
-            model.fit(scaled_data)
-            sse.append(model.inertia_)
+col1.metric("MAE", round(mean_absolute_error(y_test, y_pred), 2))
+col2.metric("MSE", round(mean_squared_error(y_test, y_pred), 2))
+col3.metric("RMSE", round(np.sqrt(mean_squared_error(y_test, y_pred)), 2))
+col4.metric("R² Score", round(r2_score(y_test, y_pred), 3))
 
-        # Plot Elbow Method
-        fig, ax = plt.subplots()
-        ax.plot(K_range, sse, marker='o')
-        ax.set_xlabel("Jumlah Cluster (K)")
-        ax.set_ylabel("SSE")
-        ax.set_title("Elbow Method untuk Menentukan K Optimal")
+# ===============================
+# KOEFISIEN REGRESI
+# ===============================
+st.subheader("📐 Koefisien Regresi")
 
-        st.pyplot(fig)
+coef_df = pd.DataFrame({
+    "Variabel": X.columns,
+    "Koefisien": model.coef_
+})
 
-        # Pilih K
-        st.subheader("⚙️ Pilih Jumlah Cluster")
-        k = st.slider("Jumlah Cluster", 2, 10, 3)
-
-        if st.button("🚀 Jalankan K-Means"):
-            model = KMeans(n_clusters=k, random_state=42, n_init=10)
-            labels = model.fit_predict(scaled_data)
-
-            df = st.session_state["data"].copy()
-            df["Cluster"] = labels
-
-            st.session_state["clustered_df"] = df
-
-            st.success("✅ Clustering selesai!")
-            st.dataframe(df.head(), use_container_width=True)
-
-            st.info(
-                f"Model membagi data menjadi {k} cluster berdasarkan pola distribusi pada variabel terpilih."
-            )
+st.table(coef_df)
 
 # ===============================
 # VISUALISASI
 # ===============================
-elif menu == "Visualisasi":
-    st.title("📊 Visualisasi Hasil Clustering")
+st.subheader("📊 Sales Aktual vs Prediksi")
 
-    if "clustered_df" not in st.session_state:
-        st.warning("Lakukan clustering terlebih dahulu")
-    else:
-        df = st.session_state["clustered_df"]
-        cols = st.session_state["selected_cols"]
+fig, ax = plt.subplots()
+ax.scatter(y_test, y_pred)
+ax.set_xlabel("Sales Aktual")
+ax.set_ylabel("Sales Prediksi")
+ax.set_title("Perbandingan Sales Aktual dan Prediksi")
 
-        if len(cols) < 2:
-            st.warning("Pilih minimal 2 kolom numerik")
+st.pyplot(fig)
 
-        else:
-            col1, col2 = st.columns(2)
-            with col1:
-                x_col = st.selectbox("Sumbu X", cols, index=0)
-            with col2:
-                y_col = st.selectbox("Sumbu Y", cols, index=1)
+# ===============================
+# FORM PREDIKSI
+# ===============================
+st.subheader("🔮 Prediksi Sales Baru")
 
-            # Plot scatter cluster
-            fig, ax = plt.subplots(figsize=(8, 6))
-            scatter = ax.scatter(
-                df[x_col], df[y_col],
-                c=df["Cluster"],
-                cmap="viridis",
-                alpha=0.8
-            )
+with st.form("prediksi_form"):
+    qty = st.number_input("Quantity", min_value=1, value=5)
+    disc = st.slider("Discount", 0.0, 1.0, 0.2, 0.05)
+    profit = st.number_input("Profit", value=50.0)
 
-            ax.set_xlabel(x_col)
-            ax.set_ylabel(y_col)
-            ax.set_title("Visualisasi Cluster")
+    submit = st.form_submit_button("Prediksi")
 
-            st.pyplot(fig)
-
-            # Interpretasi otomatis
-            st.subheader("📘 Penjelasan Visualisasi")
-            st.write(f"""
-            Grafik di atas menampilkan hasil clustering berdasarkan variabel **{x_col}** (sumbu X)
-            dan **{y_col}** (sumbu Y).
-
-            Interpretasi singkat:
-
-            • Titik-titik yang memiliki warna sama berada pada **cluster yang sama**, artinya mereka memiliki pola yang mirip.  
-            • Penyebaran titik di sepanjang sumbu X dan Y menunjukkan variasi nilai antar data.  
-            • Semakin rapat posisi titik dalam satu cluster, semakin mirip karakteristik datanya.  
-            • Jika terdapat cluster yang terpisah jauh dari cluster lain, kemungkinan terdapat **pola unik/outlier** pada data tersebut.  
-            """)
-
-            st.info("Gunakan kombinasi kolom lain untuk melihat pola cluster yang berbeda.")
+if submit:
+    hasil = model.predict([[qty, disc, profit]])
+    st.success(f"Prediksi Sales: ${hasil[0]:,.2f}")
