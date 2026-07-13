@@ -358,30 +358,32 @@ st.markdown('<div class="custom-subheader">📐 Koefisien Regresi Linear</div>',
 coef_df = pd.DataFrame({
     "Variabel": X.columns,
     "Koefisien": model.coef_,
-    "Interpretasi": ["Positif" if c > 0 else "Negatif" for c in model.coef_]
+    "Interpretasi": ["Positif ↑" if c > 0 else "Negatif ↓" for c in model.coef_]
 })
 
-# Styling koefisien dengan highlight
+# Styling koefisien dengan method yang kompatibel
 def highlight_coef(val):
     if isinstance(val, (int, float)):
-        color = '#27ae60' if val > 0 else '#e74c3c'
-        return f'background-color: {color}10; color: {color}; font-weight: 600'
+        if val > 0:
+            return 'background-color: #d4edda; color: #155724; font-weight: 600'
+        elif val < 0:
+            return 'background-color: #f8d7da; color: #721c24; font-weight: 600'
     return ''
 
 def highlight_interpretasi(val):
-    if val == "Positif":
+    if "Positif" in val:
         return 'background-color: #d4edda; color: #155724; font-weight: 600'
     else:
         return 'background-color: #f8d7da; color: #721c24; font-weight: 600'
 
-st.dataframe(
-    coef_df.style
-    .applymap(highlight_coef, subset=['Koefisien'])
-    .applymap(highlight_interpretasi, subset=['Interpretasi'])
-    .format({'Koefisien': '{:.4f}'}),
-    use_container_width=True,
-    hide_index=True
-)
+# Gunakan styler dengan method yang benar
+styled_df = coef_df.style.format({'Koefisien': '{:.4f}'})
+
+# Apply styling per kolom
+styled_df = styled_df.apply(lambda x: [highlight_coef(v) for v in x], subset=['Koefisien'])
+styled_df = styled_df.apply(lambda x: [highlight_interpretasi(v) for v in x], subset=['Interpretasi'])
+
+st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
 # ===============================
 # VISUALISASI
