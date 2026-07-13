@@ -3,7 +3,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -31,7 +30,7 @@ st.markdown("""
         /* Main title styling */
         .main-title {
             text-align: center;
-            padding: 1rem 0;
+            padding: 1.5rem 0;
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px;
             color: white !important;
@@ -42,11 +41,13 @@ st.markdown("""
         .main-title h1 {
             color: white !important;
             font-weight: 700;
+            margin: 0;
         }
         
         .main-title p {
             color: rgba(255,255,255,0.9) !important;
             font-size: 1.1rem;
+            margin: 0.5rem 0 0 0;
         }
         
         /* Card styling */
@@ -57,8 +58,7 @@ st.markdown("""
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin-bottom: 1.5rem;
             border: 1px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .card:hover {
@@ -69,12 +69,13 @@ st.markdown("""
         /* Metric card styling */
         .metric-card {
             background: white;
-            padding: 1.2rem;
+            padding: 1.2rem 1rem;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             border-left: 4px solid #667eea;
             transition: all 0.3s ease;
+            height: 100%;
         }
         
         .metric-card:hover {
@@ -86,38 +87,19 @@ st.markdown("""
             font-size: 1.8rem;
             font-weight: 700;
             color: #2c3e50;
+            margin: 0.3rem 0;
         }
         
         .metric-label {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #7f8c8d;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-        
-        /* Form styling */
-        .stForm {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        /* Button styling */
-        .stButton > button {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            color: white;
             font-weight: 600;
-            border: none;
-            padding: 0.5rem 2rem;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
         }
         
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .metric-icon {
+            font-size: 1.5rem;
         }
         
         /* Dataframe styling */
@@ -127,15 +109,20 @@ st.markdown("""
             padding: 0.5rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             overflow: hidden;
+            border: 1px solid #e8ecf1;
         }
         
         /* Subheader styling */
         .custom-subheader {
             color: #2c3e50;
             font-weight: 600;
+            font-size: 1.5rem;
             padding-bottom: 0.5rem;
             border-bottom: 3px solid #667eea;
-            margin-bottom: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         /* Prediction result styling */
@@ -147,11 +134,73 @@ st.markdown("""
             text-align: center;
             margin-top: 1rem;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .prediction-box h3 {
             color: white !important;
             margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .prediction-box p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+        
+        /* Form styling */
+        .stForm {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e8ecf1;
+        }
+        
+        /* Button styling */
+        .stButton > button {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            width: 100%;
+        }
+        
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .stButton > button:active {
+            transform: translateY(0);
+        }
+        
+        /* Input styling */
+        .stNumberInput > div > div > input, 
+        .stSlider > div > div > div {
+            border-radius: 8px;
+        }
+        
+        /* Info box styling */
+        .stAlert {
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
         }
         
         /* Footer styling */
@@ -162,6 +211,28 @@ st.markdown("""
             border-radius: 15px;
             margin-top: 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e8ecf1;
+        }
+        
+        /* Container padding */
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        /* Table styling */
+        .dataframe {
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .metric-value {
+                font-size: 1.3rem;
+            }
+            .main-title h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -205,7 +276,12 @@ with st.container():
 st.markdown('<div class="custom-subheader">📌 Data yang Digunakan</div>', unsafe_allow_html=True)
 
 df_reg = df[['Quantity', 'Discount', 'Profit', 'Sales']].dropna()
-st.info(f"✅ Jumlah data yang digunakan: **{df_reg.shape[0]}** baris")
+
+col_info1, col_info2 = st.columns([1, 3])
+with col_info1:
+    st.info(f"**{df_reg.shape[0]}** baris")
+with col_info2:
+    st.info("✅ Data siap untuk proses regresi linear")
 
 X = df_reg[['Quantity', 'Discount', 'Profit']]
 y = df_reg['Sales']
@@ -230,37 +306,47 @@ y_pred = model.predict(X_test)
 # ===============================
 st.markdown('<div class="custom-subheader">📉 Evaluasi Model Regresi</div>', unsafe_allow_html=True)
 
+# Hitung metrics
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">📊 MAE</div>
-            <div class="metric-value">{mean_absolute_error(y_test, y_pred):,.2f}</div>
+        <div class="metric-card" style="border-left-color: #3498db;">
+            <div class="metric-icon">📊</div>
+            <div class="metric-label">MAE</div>
+            <div class="metric-value">{mae:,.2f}</div>
         </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
         <div class="metric-card" style="border-left-color: #e74c3c;">
-            <div class="metric-label">📈 MSE</div>
-            <div class="metric-value">{mean_squared_error(y_test, y_pred):,.2f}</div>
+            <div class="metric-icon">📈</div>
+            <div class="metric-label">MSE</div>
+            <div class="metric-value">{mse:,.2f}</div>
         </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
         <div class="metric-card" style="border-left-color: #f39c12;">
-            <div class="metric-label">🎯 RMSE</div>
-            <div class="metric-value">{np.sqrt(mean_squared_error(y_test, y_pred)):,.2f}</div>
+            <div class="metric-icon">🎯</div>
+            <div class="metric-label">RMSE</div>
+            <div class="metric-value">{rmse:,.2f}</div>
         </div>
     """, unsafe_allow_html=True)
 
 with col4:
     st.markdown(f"""
         <div class="metric-card" style="border-left-color: #27ae60;">
-            <div class="metric-label">⭐ R² Score</div>
-            <div class="metric-value">{r2_score(y_test, y_pred):.3f}</div>
+            <div class="metric-icon">⭐</div>
+            <div class="metric-label">R² Score</div>
+            <div class="metric-value">{r2:.3f}</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -271,16 +357,28 @@ st.markdown('<div class="custom-subheader">📐 Koefisien Regresi Linear</div>',
 
 coef_df = pd.DataFrame({
     "Variabel": X.columns,
-    "Koefisien": model.coef_
+    "Koefisien": model.coef_,
+    "Interpretasi": ["Positif" if c > 0 else "Negatif" for c in model.coef_]
 })
 
-# Styling koefisien dataframe
-def color_coef(val):
-    color = '#27ae60' if val > 0 else '#e74c3c'
-    return f'color: {color}; font-weight: 600'
+# Styling koefisien dengan highlight
+def highlight_coef(val):
+    if isinstance(val, (int, float)):
+        color = '#27ae60' if val > 0 else '#e74c3c'
+        return f'background-color: {color}10; color: {color}; font-weight: 600'
+    return ''
+
+def highlight_interpretasi(val):
+    if val == "Positif":
+        return 'background-color: #d4edda; color: #155724; font-weight: 600'
+    else:
+        return 'background-color: #f8d7da; color: #721c24; font-weight: 600'
 
 st.dataframe(
-    coef_df.style.applymap(color_coef, subset=['Koefisien']).format({'Koefisien': '{:.4f}'}),
+    coef_df.style
+    .applymap(highlight_coef, subset=['Koefisien'])
+    .applymap(highlight_interpretasi, subset=['Interpretasi'])
+    .format({'Koefisien': '{:.4f}'}),
     use_container_width=True,
     hide_index=True
 )
@@ -290,26 +388,47 @@ st.dataframe(
 # ===============================
 st.markdown('<div class="custom-subheader">📊 Perbandingan Sales Aktual vs Prediksi</div>', unsafe_allow_html=True)
 
-# Set style seaborn
-sns.set_style("whitegrid")
+fig, ax = plt.subplots(figsize=(10, 6), facecolor='white')
 
-fig, ax = plt.subplots(figsize=(10, 6))
+# Scatter plot
+scatter = ax.scatter(y_test, y_pred, 
+                    alpha=0.6, 
+                    c=y_test, 
+                    cmap='RdYlGn', 
+                    edgecolors='black', 
+                    linewidth=0.5,
+                    s=50)
 
-# Scatter plot with regression line
-scatter = ax.scatter(y_test, y_pred, alpha=0.6, c=y_test, cmap='viridis', edgecolors='black', linewidth=0.5)
-ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2, label='Perfect Prediction')
+# Perfect prediction line
+min_val = min(y_test.min(), y_pred.min())
+max_val = max(y_test.max(), y_pred.max())
+ax.plot([min_val, max_val], [min_val, max_val], 
+        'r--', lw=2, label='Perfect Prediction', alpha=0.7)
 
+# Set labels dan title
 ax.set_xlabel("Sales Aktual", fontsize=12, fontweight='bold')
 ax.set_ylabel("Sales Prediksi", fontsize=12, fontweight='bold')
-ax.set_title("Sales Aktual vs Sales Prediksi (Regresi Linear)", fontsize=14, fontweight='bold', pad=20)
+ax.set_title("Sales Aktual vs Sales Prediksi (Regresi Linear)", 
+             fontsize=14, fontweight='bold', pad=20)
 
-# Add colorbar
-cbar = plt.colorbar(scatter)
-cbar.set_label('Sales Aktual', fontsize=10)
+# Grid
+ax.grid(True, alpha=0.3, linestyle='--')
 
-ax.legend(loc='upper left')
-ax.grid(True, alpha=0.3)
+# Legend
+ax.legend(loc='upper left', frameon=True, fancybox=True, shadow=True)
 
+# Colorbar
+cbar = plt.colorbar(scatter, ax=ax)
+cbar.set_label('Sales Aktual', fontsize=10, fontweight='bold')
+
+# Tambahkan R² pada plot
+ax.text(0.02, 0.98, f'R² = {r2:.3f}', 
+        transform=ax.transAxes, 
+        fontsize=12, 
+        verticalalignment='top',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+plt.tight_layout()
 st.pyplot(fig, use_container_width=True)
 
 # ===============================
@@ -321,36 +440,49 @@ with st.form("prediksi_sales", clear_on_submit=False):
     col1, col2, col3 = st.columns(3)
     
     with col1:
+        st.markdown("### 📦 Quantity")
         qty = st.number_input(
-            "📦 Quantity", 
+            "Jumlah produk", 
             min_value=1, 
+            max_value=100,
             value=5,
-            help="Jumlah produk yang dibeli"
+            step=1,
+            label_visibility="collapsed"
         )
     
     with col2:
+        st.markdown("### 🏷️ Discount")
         disc = st.slider(
-            "🏷️ Discount", 
+            "Diskon", 
             0.0, 1.0, 0.2, 0.05,
-            help="Diskon dalam persentase (0.0 - 1.0)"
+            format="%.0f%%",
+            label_visibility="collapsed"
         )
     
     with col3:
+        st.markdown("### 💰 Profit")
         profit = st.number_input(
-            "💰 Profit", 
+            "Keuntungan", 
+            min_value=-1000.0,
+            max_value=10000.0,
             value=50.0,
-            help="Keuntungan dari penjualan"
+            step=10.0,
+            label_visibility="collapsed"
         )
     
-    submit = st.form_submit_button("🚀 Prediksi Sales", use_container_width=True)
+    st.markdown("---")
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    with col_btn2:
+        submit = st.form_submit_button("🚀 Prediksi Sales", use_container_width=True)
 
 if submit:
     hasil = model.predict([[qty, disc, profit]])
     st.markdown(f"""
         <div class="prediction-box">
-            <h3>💰 Prediksi Sales: ${hasil[0]:,.2f}</h3>
-            <p style="margin-top: 0.5rem; opacity: 0.9;">
-                Berdasarkan Quantity: {qty}, Discount: {disc:.0%}, Profit: ${profit:,.2f}
+            <h3>💰 ${hasil[0]:,.2f}</h3>
+            <p>Prediksi Sales berdasarkan:</p>
+            <p style="font-size: 0.9rem;">
+                Quantity: {qty} | Discount: {disc:.0%} | Profit: ${profit:,.2f}
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -360,10 +492,13 @@ if submit:
 # ===============================
 st.markdown("""
     <div class="footer">
-        <p style="margin: 0; color: #7f8c8d;">
-            📊 Model: Regresi Linear | Dataset: Sample Superstore | Dibangun dengan ❤️ menggunakan Streamlit
+        <p style="margin: 0; color: #2c3e50; font-weight: 500;">
+            📊 Model: Regresi Linear | Dataset: Sample Superstore
         </p>
         <p style="margin: 0.5rem 0 0 0; color: #95a5a6; font-size: 0.85rem;">
+            Dibangun dengan ❤️ menggunakan Streamlit
+        </p>
+        <p style="margin: 0.2rem 0 0 0; color: #bdc3c7; font-size: 0.75rem;">
             © 2026 - Semua Hak Dilindungi
         </p>
     </div>
